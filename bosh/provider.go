@@ -1,4 +1,4 @@
-package cloudfoundry
+package bosh
 
 import (
 	"github.com/hashicorp/terraform/helper/schema"
@@ -9,20 +9,20 @@ func Provider() terraform.ResourceProvider {
 	
 	return &schema.Provider{
 		Schema: map[string]*schema.Schema{
-			"cf_api_endpoint": &schema.Schema{
+			"target": &schema.Schema{
 				Type:        schema.TypeString,
 				Required:    true,
-				DefaultFunc: schema.EnvDefaultFunc("CF_API_ENDPOINT", nil),
+				DefaultFunc: schema.EnvDefaultFunc("BOSH_TARGET", nil),
 			},
-			"cf_username": &schema.Schema{
+			"user": &schema.Schema{
 				Type:        schema.TypeString,
 				Required:    true,
-				DefaultFunc: schema.EnvDefaultFunc("CF_USERNAME", nil),
+				DefaultFunc: schema.EnvDefaultFunc("BOSH_USER", nil),
 			},
-			"cf_password": &schema.Schema{
+			"password": &schema.Schema{
 				Type:        schema.TypeString,
 				Required:    true,
-				DefaultFunc: schema.EnvDefaultFunc("CF_PASSWORD", nil),
+				DefaultFunc: schema.EnvDefaultFunc("BOSH_PASSWORD", nil),
 			},
 		},
 
@@ -34,9 +34,9 @@ func Provider() terraform.ResourceProvider {
 
 func providerConfigure(d *schema.ResourceData) (interface{}, error) {
 	config := Config{
-		ApiEndpoint: d.Get("cf_api_endpoint").(string),
-		Username: d.Get("vsphere_password").(string),
-		Password: d.Get("vsphere_host").(string),
+		Target: d.Get("target").(string),
+		User: d.Get("user").(string),
+		Password: d.Get("password").(string),
 	}
 	return config.Client()
 }

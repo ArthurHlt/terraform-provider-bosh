@@ -1,4 +1,4 @@
-package cloudfoundry
+package bosh
 
 import (
 	"os"
@@ -14,7 +14,7 @@ var testAccProvider *schema.Provider
 func init() {
 	testAccProvider = Provider().(*schema.Provider)
 	testAccProviders = map[string]terraform.ResourceProvider{
-		"vsphere": testAccProvider,
+		"bosh": testAccProvider,
 	}
 }
 
@@ -29,10 +29,10 @@ func TestProvider_impl(t *testing.T) {
 }
 
 func testAccPreCheck(t *testing.T) {
-	apiEndpoint := os.Getenv("CF_API_ENDPOINT")
-	username := os.Getenv("CF_USERNAME")
-	password := os.Getenv("CF_PASSWORD")
-	if apiEndpoint == "" || username == "" || password == "" {
-		t.Fatal("CF_API_ENDPOINT, CF_USERNAME and CF_PASSWORD must be set for acceptance tests to work.")
+	target := os.Getenv("BOSH_TARGET")
+	user := os.Getenv("BOSH_USER")
+	password := os.Getenv("BOSH_PASSWORD")
+	if target == "" || user == "" || password == "" {
+		t.Fatal("BOSH_TARGET, BOSH_USER and BOSH_PASSWORD must be set for acceptance tests to work.")
 	}
 }
