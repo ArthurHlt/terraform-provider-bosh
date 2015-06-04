@@ -4,4 +4,3 @@ go: 1.4.1
 
 install:
   - export PATH=$PATH:$HOME/gopath/bin
-  - godep restore
