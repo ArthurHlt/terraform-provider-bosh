@@ -1,6 +1,6 @@
 # Terraform Bosh Provider
 
-The [Bosh](http://bosh.io/) provider for [Terraform](https://terraform.io/) provides a seamless integration of the Bosh deployment and operations toolset with a Terraform'ed cloud.
+The [Bosh](http://bosh.io/) provider for [Terraform](https://terraform.io/) provides a seamless integration of the Bosh deployment and operations toolset with a Terraform'ed cloud. All work for this provider is tracked using [PivotalTracker](https://www.pivotaltracker.com/projects/1359482).
 
 ## Provider
 
@@ -103,7 +103,30 @@ TODO
 
 You need to have a valid IaaS endpoint as well as a local bosh-lite instance to run the acceptance tests.
 
+To run execute the following shell commands from the bosh provider directory.
+
 ```
-GLOG_logtostderr=1
-TF_ACC=1
+$ export TF_ACC=1
+$ eport BOSH_TARGET=#.#.#.#
+$ export BOSH_USER=admin
+$ export BOSH_PASSWORD=password
+$ go test -v
 ```
+
+## License and Contributors
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+Author | Email | Company
+-------|-------|--------
+Mevan Samaratunga | msamaratunga@pivotal.io | [Pivotal](http://www.pivotal.io)
