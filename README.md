@@ -1,4 +1,5 @@
-# Bosh Provider for Terraform
+# Bosh Provider for Terraform [![Build Status](https://travis-ci.org/mevansam/terraform-provider-bosh.svg?branch=master)](https://travis-ci.org/mevansam/terraform-provider-bosh.svg?branch=master)
+
 
 The [Bosh](http://bosh.io/) provider for [Terraform](https://terraform.io/) provides seamless integration of the Bosh deployment and operations toolset with a Terraform'ed cloud. All work for this provider is tracked using [PivotalTracker](https://www.pivotaltracker.com/projects/1359482). 
 
@@ -13,7 +14,7 @@ The Bosh provider will target the given endpoint if it is available. If not the 
 
 ```
 provider "bosh" {
-	target = "#.#.#.#"	# Publicly addressable name or IP
+    target = "#.#.#.#"  # Publicly addressable name or IP
     username = "admin"
     password = "*****"
 }
@@ -28,7 +29,7 @@ Describes a stemcell that can be referenced by bosh deployments.
 ```
 resource "bosh_stemcell" "ubuntu" {
 
-	stemcell_name = "bosh-stemcell-2978-openstack-kvm-ubuntu-trusty-go_agent.tgz"
+    stemcell_name = "bosh-stemcell-2978-openstack-kvm-ubuntu-trusty-go_agent.tgz"
     
     # Optional. If not specified then the name should reference a public stemcell.
     url = "https://bosh.io/d/stemcells/bosh-openstack-kvm-ubuntu-trusty-go_agent?v=2978"
@@ -45,7 +46,7 @@ Describes a bosh release that it can be referenced by bosh deployments.
 ```
 resource "bosh_release" "bosh" {
 
-	name = "bosh"
+    name = "bosh"
     url = "https://bosh.io/d/github.com/cloudfoundry/bosh?v=169"
     
     # Optional. If not specified then this will be determined by downloading the binary
@@ -60,8 +61,8 @@ Deploys Microbosh to the specified IaaS using *[bosh-init](https://github.com/cl
 ```
 resource "bosh_microbosh" {
 
-	name = "my_terraformed_microbosh"
-	
+    name = "my_terraformed_microbosh"
+    
     binary = true  # set up microbosh in a binary configuration for HA
     
     release {
@@ -78,12 +79,12 @@ resource "bosh_microbosh" {
     # Bosh IaaS CPI configuration #
 
     openstack {
-    	
-    	username = "os_user"
-    	password = "os_password"
-    	tenant = "bosh_tenant"
-    	auth_url = "https://my-openstack.com:5000/v2.0"
-    	region = "east"
+        
+        username = "os_user"
+        password = "os_password"
+        tenant = "bosh_tenant"
+        auth_url = "https://my-openstack.com:5000/v2.0"
+        region = "east"
     }
 
     # OR
