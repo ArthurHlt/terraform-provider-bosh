@@ -9,7 +9,7 @@ The Bosh provider will target the given endpoint if it is available. If not the 
 ```
 provider "bosh" {
 	target = "#.#.#.#"	# Publicly addressable name or IP
-    user = "admin"
+    username = "admin"
     password = "*****"
 }
 ```
@@ -31,6 +31,12 @@ resource "bosh_microbosh" {
     # Bosh IaaS CPI configuration #
 
     openstack {
+    	
+    	username = "os_user"
+    	password = "os_password"
+    	tenant = "bosh_tenant"
+    	auth_url = "https://my-openstack.com:5000/v2.0"
+    	region = "east"
     }
 
     # OR
@@ -42,7 +48,7 @@ resource "bosh_microbosh" {
     }
 
     # OR
-    gce {
+    google {
     }
 }
 ```
@@ -51,3 +57,11 @@ resource "bosh_microbosh" {
 
 TODO
 
+## Running Tests
+
+You need to have a valid IaaS endpoint as well as a local bosh-lite instance to run the acceptance tests.
+
+```
+GLOG_logtostderr=1
+TF_ACC=1
+```
