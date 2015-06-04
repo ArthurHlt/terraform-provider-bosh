@@ -2,12 +2,12 @@ package main
 
 import (
     "github.com/hashicorp/terraform/plugin"
-	"github.com/mevansam/terraform-provider-cloudfoundry/cloudfoundry"    
+	"github.com/mevansam/terraform-provider-bosh/bosh"    
 )
 
 func main() {
 	
 	plugin.Serve( &plugin.ServeOpts {
-		ProviderFunc: cloudfoundry.Provider,
+		ProviderFunc: bosh.Provider,
 	} )
 }
