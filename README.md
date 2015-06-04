@@ -1,4 +1,4 @@
-# Terraform Bosh Provider
+# Bosh Provider for Terraform
 
 The [Bosh](http://bosh.io/) provider for [Terraform](https://terraform.io/) provides seamless integration of the Bosh deployment and operations toolset with a Terraform'ed cloud. All work for this provider is tracked using [PivotalTracker](https://www.pivotaltracker.com/projects/1359482). 
 
