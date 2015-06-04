@@ -3,6 +3,16 @@
 	"GoVersion": "go1.4.1",
 	"Deps": [
 		{
+			"ImportPath": "github.com/codegangsta/inject",
+			"Comment": "v1.0-rc1-10-g33e0aa1",
+			"Rev": "33e0aa1cb7c019ccc3fbe049a8262a6403d30504"
+		},
+		{
+			"ImportPath": "github.com/codeskyblue/go-sh",
+			"Comment": "v0.1-32-gdbcc84e",
+			"Rev": "dbcc84e889ce788aa64971d6eb98ab1d24d84cdf"
+		},
+		{
 			"ImportPath": "github.com/hashicorp/errwrap",
 			"Rev": "7554cd9344cec97297fa6649b055a8c98c2a1e55"
 		},
@@ -74,10 +84,6 @@
 			"Rev": "b2e55852ddaf823a85c67f798080eb7d08acd71d"
 		},
 		{
-			"ImportPath": "github.com/mevansam/terraform-provider-cloudfoundry/cloudfoundry",
-			"Rev": "fb67020bd4416af74dcff83476041cdcfc9e27fc"
-		},
-		{
 			"ImportPath": "github.com/mitchellh/copystructure",
 			"Rev": "6fc66267e9da7d155a9d3bd489e00dad02666dc6"
 		},
@@ -92,6 +98,10 @@
 		{
 			"ImportPath": "github.com/mitchellh/reflectwalk",
 			"Rev": "eecf4c70c626c7cfbb95c90195bc34d386c74ac6"
+		},
+		{
+			"ImportPath": "golang.org/x/net/context",
+			"Rev": "a74a0672349d0bb67e7d25f8e88944019c98a73b"
 		}
 	]
 }
