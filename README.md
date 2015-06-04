@@ -1,5 +1,4 @@
-# Bosh Provider for Terraform [![Build Status](https://travis-ci.org/mevansam/terraform-provider-bosh.svg?branch=master)](https://travis-ci.org/mevansam/terraform-provider-bosh.svg?branch=master)
-
+# Bosh Provider for Terraform [![Build Status](https://travis-ci.org/mevansam/terraform-provider-bosh.svg?branch=master)](https://travis-ci.org/mevansam/terraform-provider-bosh)
 
 The [Bosh](http://bosh.io/) provider for [Terraform](https://terraform.io/) provides seamless integration of the Bosh deployment and operations toolset with a Terraform'ed cloud. All work for this provider is tracked using [PivotalTracker](https://www.pivotaltracker.com/projects/1359482). 
 
