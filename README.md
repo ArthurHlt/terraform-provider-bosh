@@ -16,6 +16,38 @@ provider "bosh" {
 
 ## Terraform Resources
 
+### "bosh_stemcell"
+
+Describes a stemcell that can be referenced by bosh deployments.
+
+```
+resource "bosh_stemcell" "ubuntu" {
+
+	stemcell_name = "bosh-stemcell-2978-openstack-kvm-ubuntu-trusty-go_agent.tgz"
+    
+    # Optional. If not specified then the name should reference a public stemcell.
+    url = "https://bosh.io/d/stemcells/bosh-openstack-kvm-ubuntu-trusty-go_agent?v=2978"
+    
+    # Optional. If not specified then this will be determined by downloading the binary
+    sha1 = "42e08d492dafd46226676be59ee3e6e8a0da618b" 
+}
+```
+
+### "bosh_release"
+
+Describes a bosh release that it can be referenced by bosh deployments.
+
+```
+resource "bosh_release" "bosh" {
+
+	name = "bosh"
+    url = "https://bosh.io/d/github.com/cloudfoundry/bosh?v=169"
+    
+    # Optional. If not specified then this will be determined by downloading the binary
+    sha1 = "ec361150584094951273f1088344e2d4b2ebeb9f  "
+}
+```
+
 ### "bosh_microbosh"
 
 Deploys Microbosh to the specified IaaS using *[bosh-init](https://github.com/cloudfoundry/bosh-init)*. If this resource is specified and the ```target``` given in the provider configuration is not pingable, then this resource will attempt to create the Microbosh instance.
@@ -26,6 +58,16 @@ resource "bosh_microbosh" {
 	name = "my_terraformed_microbosh"
 	
     binary = true  # set up microbosh in a binary configuration for HA
+    
+    release {
+        url = "${bosh_release.bosh.url}"
+        url = "${bosh_release.bosh.sha1}"
+    }
+    
+    stemcell {
+        url = "${bosh_stemcell.ubuntu.url}"
+        sha1 = "${bosh_stemcell.ubuntu.sha1}"
+    }
 
     ###############################
     # Bosh IaaS CPI configuration #
