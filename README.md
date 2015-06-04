@@ -1,6 +1,9 @@
 # Terraform Bosh Provider
 
-The [Bosh](http://bosh.io/) provider for [Terraform](https://terraform.io/) provides a seamless integration of the Bosh deployment and operations toolset with a Terraform'ed cloud. All work for this provider is tracked using [PivotalTracker](https://www.pivotaltracker.com/projects/1359482).
+The [Bosh](http://bosh.io/) provider for [Terraform](https://terraform.io/) provides seamless integration of the Bosh deployment and operations toolset with a Terraform'ed cloud. All work for this provider is tracked using [PivotalTracker](https://www.pivotaltracker.com/projects/1359482). To contribute.
+
+1. Fork the project and make your changes and submite a pull request.
+2. Request to be added to the list of contributors to this Github repository and the PivotalTracker project.
 
 ## Provider
 
