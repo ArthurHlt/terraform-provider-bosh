@@ -49,7 +49,7 @@ resource "bosh_release" "bosh" {
     url = "https://bosh.io/d/github.com/cloudfoundry/bosh?v=169"
     
     # Optional. If not specified then this will be determined by downloading the binary
-    sha1 = "ec361150584094951273f1088344e2d4b2ebeb9f  "
+    sha1 = "ec361150584094951273f1088344e2d4b2ebeb9f"
 }
 ```
 
