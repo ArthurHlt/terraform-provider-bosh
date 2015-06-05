@@ -106,13 +106,49 @@ TODO
 
 ## Running Tests
 
-You need to have a valid IaaS endpoint as well as a local bosh-lite instance to run the acceptance tests.
+The Bosh integration tests are run against a local Bosh Director instance. This can be launched using the *Vagrantfile* located in the project root.
 
-To run execute the following shell commands from the bosh provider directory.
+The vagrant-bosh plugin needs to be installed so that Vagrant can provision the Bosh bits. 
+
+To install the plugin:
+```
+$ vagrant plugin install vagrant-bosh
+```
+
+And then run:
+```
+$ vagrant up
+```
+
+Validate that the machine was provisioned correctly by running:
+```
+$ bosh --target 127.0.0.1 --user admin --password admin status
+
+Which should output:
+```
+Config
+             /Users/msamaratunga/.bosh_config
+
+Director
+  Name       Bosh Lite Director
+  URL        https://127.0.0.1:25555
+  Version    1.2977.0 (00000000)
+  User       admin
+  UUID       7d926be9-d123-4155-987e-65e6c2879f98
+  CPI        cpi
+  dns        disabled
+  compiled_package_cache enabled (provider: local)
+  snapshots  disabled
+
+Deployment
+  not set
+```
+
+To run the tests execute the following shell commands from the bosh provider directory.
 
 ```
 $ export TF_ACC=1
-$ eport BOSH_TARGET=#.#.#.#
+$ export BOSH_TARGET=127.0.0.1
 $ export BOSH_USER=admin
 $ export BOSH_PASSWORD=password
 $ go test -v
