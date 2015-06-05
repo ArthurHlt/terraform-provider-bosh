@@ -1,6 +1,8 @@
 package bosh
 
 import (
+	"regexp"
+	
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/terraform"
 )
@@ -33,8 +35,21 @@ func Provider() terraform.ResourceProvider {
 }
 
 func providerConfigure(d *schema.ResourceData) (interface{}, error) {
+
+	var re *regexp.Regexp
+
+	target := d.Get("target").(string)		
+	re = regexp.MustCompile("^http(s)?://")
+	if re.FindString(target) == "" {
+		target = "https://" + target
+	}
+	re = regexp.MustCompile(":\\d+$")
+	if re.FindString(target) == "" {
+		target = target + ":25555"
+	}
+	
 	config := Config{
-		Target: d.Get("target").(string),
+		Target: target,
 		User: d.Get("user").(string),
 		Password: d.Get("password").(string),
 	}
