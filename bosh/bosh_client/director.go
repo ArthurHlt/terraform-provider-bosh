@@ -1,4 +1,4 @@
-package bosh
+package bosh_client
 
 import (
 	"fmt"
@@ -11,7 +11,7 @@ import (
 	"github.com/cloudfoundry-community/gogobosh/net"
 )
 
-type BoshClient struct {
+type Director struct {
 	UUID string
 	Name string
 	Version string
@@ -20,9 +20,9 @@ type BoshClient struct {
 	director models.Director
 }
 
-func NewBoshClient(ctx context.Context, target string, user string, password string) (*BoshClient, error) {
+func NewDirector(ctx context.Context, target string, user string, password string) (*Director, error) {
 	
-	c := &BoshClient {
+	c := &Director {
 		director: gogobosh.NewDirector(target, user, password),
 	}
 	
@@ -34,7 +34,7 @@ func NewBoshClient(ctx context.Context, target string, user string, password str
 	return c, nil 
 }
 
-func (b *BoshClient) Connect() error {
+func (b *Director) Connect() error {
 	
 	repo := api.NewBoshDirectorRepository(&b.director, net.NewDirectorGateway())
 
@@ -51,6 +51,6 @@ func (b *BoshClient) Connect() error {
 	return nil
 }
 
-func (b *BoshClient) IsConnected() bool {
+func (b *Director) IsConnected() bool {
 	return b.UUID != ""
 }

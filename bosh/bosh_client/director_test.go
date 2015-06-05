@@ -1,4 +1,4 @@
-package bosh
+package bosh_client
 
 import (
 	"log"
@@ -15,26 +15,26 @@ const boshLitePassword = "admin"
 
 func TestBoshConnect(t *testing.T) {
 	
-	b, err := NewBoshClient(context.Background(), boshLiteTarget, boshLiteUser, boshLitePassword)
+	d, err := NewDirector(context.Background(), boshLiteTarget, boshLiteUser, boshLitePassword)
 	if err != nil {
-		log.Printf("[FAIL] Creating Bosh client failed: %s", err.Error())
+		log.Printf("[FAIL] Unable to connnect to Bosh director: %s", err.Error())
 		t.FailNow()
 	}
 	
-	log.Printf("[DEBUG] Bosh client: %# v", pretty.Formatter(b))
+	log.Printf("[DEBUG] Bosh client: %# v", pretty.Formatter(d))
 
-	if !b.IsConnected() {
+	if !d.IsConnected() {
 		log.Printf("[FAIL] Connection to Bosh lite target '%s' failed.", boshLiteTarget)
 		t.FailNow()		
 	}
 	
-	b, err = NewBoshClient(context.Background(), "https://127.0.0.1:25555", boshLiteUser, boshLitePassword)
-	if b.IsConnected() {
+	d, err = NewDirector(context.Background(), "https://127.0.0.1:25555", boshLiteUser, boshLitePassword)
+	if d.IsConnected() {
 		log.Printf("[FAIL] Expected initial connection to non-existent Bosh target 'https://127.0.0.1:25555' to fail.")
 		t.FailNow()		
 	}
 	
-	err = b.Connect()
+	err = d.Connect()
 	if err == nil {
 		log.Printf("[FAIL] Expected bosh connection failure when trying to connect explictly to 'https://127.0.0.1:25555'")
 		t.FailNow()
