@@ -123,6 +123,7 @@ $ vagrant up
 Validate that the machine was provisioned correctly by running:
 ```
 $ bosh --target 127.0.0.1 --user admin --password admin status
+```
 
 Which should output:
 ```
