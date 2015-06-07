@@ -145,7 +145,7 @@ Deployment
   not set
 ```
 
-To run the tests execute the following shell commands from the bosh provider directory.
+To run the tests execute the following shell commands from the bosh provider directory. These integration tests will take a long time to complete as they will upload stemcells / releases and run deployments mutliple times. They need access to the internet to complete successfully and a fast network connection will speed up the tests.
 
 ```
 $ export TF_ACC=1
