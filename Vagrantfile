@@ -13,8 +13,8 @@ Vagrant.configure("2") do |config|
     end
 
     config.vm.provision "bosh" do |c|
-        bosh_version = 168
-        warden_cpi_version = 20
+        bosh_version = 170
+        warden_cpi_version = 21
 
         c.manifest = <<-EOS
 ---
