@@ -2,6 +2,7 @@ package bosh_client
 
 import (
 	"log"
+	"regexp"
 	"strings"
 	"testing"
 	
@@ -49,7 +50,71 @@ func GetDirector(t *testing.T) *Director {
 	if err != nil {
 		log.Printf("[FAIL] Unable to connnect to Bosh director: %s", err.Error())
 		t.FailNow()
+		return nil
 	}
 	
 	return d	
+}
+
+func GetInitializedDirector(t *testing.T) *Director {
+
+	var (
+		err error
+		
+		stemcell *Stemcell
+		release *Release
+	)
+	
+	d := GetDirector(t)
+	if d != nil {
+		
+		stemcell, err = d.GetStemcell("bosh-warden-boshlite-ubuntu-trusty-go_agent", "2776")
+		if err != nil {
+			log.Printf("[FAIL] Unable to retrieve lookup stemcells: %s", err.Error())
+			t.FailNow()
+			return nil
+		}
+		if stemcell == nil {
+			log.Printf("[DEBUG] Uploading stemcell for testing...")
+			err = d.UploadRemoteStemcell("https://bosh.io/d/stemcells/bosh-warden-boshlite-ubuntu-trusty-go_agent?v=2776")
+			if err != nil {
+				log.Printf("[FAIL] Error uploading stemcell: %s", err.Error())
+				t.FailNow()
+				return nil
+			}			
+		}
+		
+		release, err = d.GetRelease("docker", "13")
+		if err != nil {
+			log.Printf("[FAIL] Unable to retrieve lookup releases: %s", err.Error())
+			t.FailNow()			
+			return nil
+		}
+		if release == nil {
+			log.Printf("[DEBUG] Uploading release for testing...")
+			err = d.UploadRemoteRelease("https://bosh.io/d/github.com/cf-platform-eng/docker-boshrelease?v=13")
+			if err != nil {
+				log.Printf("[FAIL] Error uploading release: %s", err.Error())				
+			}
+		}
+	}
+	return d
+}
+
+func assertPattern(t *testing.T, s string, p string) {
+	
+	r := regexp.MustCompile(p)
+	if !r.MatchString(s) {
+		log.Printf("[FAIL] Pattern '%s' not found in string not as expected.", p)
+		t.FailNow()		
+	}
+}
+
+func assertPatternFalse(t *testing.T, s string, p string) {
+	
+	r := regexp.MustCompile(p)
+	if r.MatchString(s) {
+		log.Printf("[FAIL] Pattern '%s' found in string not as expected.", p)
+		t.FailNow()		
+	}
 }

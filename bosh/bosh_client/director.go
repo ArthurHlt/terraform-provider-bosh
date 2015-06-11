@@ -7,7 +7,6 @@ import (
 	"golang.org/x/net/context"
 	"github.com/cloudfoundry-community/gogobosh"
 	"github.com/cloudfoundry-community/gogobosh/api"
-//	"github.com/cloudfoundry-community/gogobosh/models"
 	"github.com/cloudfoundry-community/gogobosh/net"
 )
 
@@ -52,73 +51,4 @@ func (d *Director) Connect() error {
 
 func (b *Director) IsConnected() bool {
 	return b.UUID != ""
-}
-
-func (d *Director) UploadRemoteStemcell(url string) error {
-	
-	resp := d.director.UploadRemoteStemcell(url)
-	if resp.IsNotSuccessful() {
-		return fmt.Errorf("error uploading stemcell at %s", url)
-	}
-	return nil
-}
-
-func (d *Director) ListStemcells() (map[string]*Stemcell, error) {
-	
-	stemcells := make(map[string]*Stemcell)
-
-	stemcellList, resp := d.director.GetStemcells()
-	if resp.IsNotSuccessful() {
-		return nil, fmt.Errorf("Could not fetch BOSH stemcells")
-	} else {
-		for _, s := range stemcellList {
-			stemcell := Stemcell{
-				Name: s.Name,
-				Version: s.Version,
-				CID: s.Cid,
-				Deployments: s.Deployments,
-				api: d,
-			}
-			stemcells[s.Name + "/" + s.Version] = &stemcell
-		}
-	}
-	
-	return stemcells, nil
-}
-
-
-func (d *Director) UploadRemoteRelease(url string) error {
-	
-	resp := d.director.UploadRemoteRelease(url)
-	if resp.IsNotSuccessful() {
-		return fmt.Errorf("error uploading stemcell at %s", url)
-	}
-	return nil
-}
-
-func (d *Director) ListReleases() (map[string]*Release, error) {
-	
-	releases := make(map[string]*Release)
-
-	releaseList, resp := d.director.GetReleases()
-	if resp.IsNotSuccessful() {
-		return nil, fmt.Errorf("Could not fetch BOSH stemcells")
-	} else {
-		for _, r := range releaseList {
-			for _, v := range r.Versions {
-				release := Release{
-					Name: r.Name,
-					Version: v.Version,
-					CommitHash: v.CommitHash,
-					Deployed: v.CurrentlyDeployed,
-					Uncommitted: v.UncommittedChanges,
-					api: d,
-				}
-				
-				releases[r.Name + "/" + v.Version] = &release
-			}
-		}
-	}
-	
-	return releases, nil
 }

@@ -18,8 +18,8 @@ func TestUploadReleases(t *testing.T) {
 	d := GetDirector(t)
 	
 	releaselURLs := [...]string{
-		"https://bosh.io/d/github.com/cf-platform-eng/docker-boshrelease?v=13",
 		"https://bosh.io/d/github.com/cf-platform-eng/docker-boshrelease?v=12",
+		"https://bosh.io/d/github.com/cf-platform-eng/docker-boshrelease?v=11",
 		"https://bosh.io/d/github.com/cloudfoundry-community/docker-registry-boshrelease?v=1",
 	}
 	
@@ -33,15 +33,19 @@ func TestUploadReleases(t *testing.T) {
 	}
 	
 	releases, err = d.ListReleases()
-	if len(releases) != len(releaselURLs) {
-		log.Printf("[FAIL] Expected %d releases to have been uploaded but found %s.", len(releases), len(releaselURLs))
+	if err != nil {
+		log.Printf("[FAIL] Error retrieving releases: %s", err.Error())
+		t.FailNow()
+	}
+	if len(releases) <= len(releaselURLs) {
+		log.Printf("[FAIL] Expected %d releases to have been uploaded but found %d.", len(releases), len(releaselURLs))
 		t.FailNow()		
 	}
 	log.Printf("[DEBUG] Releases uploaded to Bosh: %# v", pretty.Formatter(releases))
 	
-	release = releases["docker/13"]
+	release = releases["docker/12"]
 	if release == nil {
-		log.Printf("[FAIL] Uploaded release 'docker-boshrelease' version '13' not returned from Bosh")
+		log.Printf("[FAIL] Uploaded release 'docker-boshrelease' version '12' not returned from Bosh")
 		t.FailNow()
 	}
 }
@@ -62,5 +66,11 @@ func TestDeleteReleases(t *testing.T) {
 			log.Printf("[FAIL] Error deleting release: %s", err.Error())
 			t.FailNow()
 		}
+	}
+	
+	releases, err = d.ListReleases()
+	if len(releases) != 0 {
+		log.Printf("[FAIL] Expected all releases to have been deleted but found %d releases remaining.", len(releases))
+		t.FailNow()		
 	}
 }

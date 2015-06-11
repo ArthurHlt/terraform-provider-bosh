@@ -18,9 +18,9 @@ func TestUploadStemcells(t *testing.T) {
 	d := GetDirector(t)
 	
 	stemcellURLs := [...]string{
-		"https://bosh.io/d/stemcells/bosh-warden-boshlite-ubuntu-trusty-go_agent?v=2776",
-//		"https://bosh.io/d/stemcells/bosh-openstack-kvm-ubuntu-trusty-go_agent-raw?v=2978",
+		"https://bosh.io/d/stemcells/bosh-openstack-kvm-ubuntu-trusty-go_agent-raw?v=2978",
 //		"https://bosh.io/d/stemcells/bosh-openstack-kvm-ubuntu-trusty-go_agent-raw?v=2977",
+//		"https://bosh.io/d/stemcells/bosh-warden-boshlite-ubuntu-trusty-go_agent?v=2776",
 	}
 	
 	for _, url := range stemcellURLs {
@@ -33,15 +33,19 @@ func TestUploadStemcells(t *testing.T) {
 	}
 	
 	stemcells, err = d.ListStemcells()
-	if len(stemcells) != len(stemcellURLs) {
-		log.Printf("[FAIL] Expected %d stemcells to have been uploaded but found %s.", len(stemcellURLs), len(stemcells))
+	if err != nil {
+		log.Printf("[FAIL] Error retrieving stemcells: %s", err.Error())
+		t.FailNow()
+	}
+	if len(stemcells) <= len(stemcellURLs) {
+		log.Printf("[FAIL] Expected %d stemcells to have been uploaded but found %d.", len(stemcellURLs), len(stemcells))
 		t.FailNow()		
 	}
 	log.Printf("[DEBUG] Stemcells uploaded to Bosh: %# v", pretty.Formatter(stemcells))
 	
-	stemcell = stemcells["bosh-warden-boshlite-ubuntu-trusty-go_agent/2776"]
+	stemcell = stemcells["bosh-openstack-kvm-ubuntu-trusty-go_agent-raw/2978"]
 	if stemcell == nil {
-		log.Printf("[FAIL] Uploaded stemcell 'bosh-warden-boshlite-ubuntu-trusty-go_agent' version '2776' not returned from Bosh")
+		log.Printf("[FAIL] Uploaded stemcell 'bosh-openstack-kvm-ubuntu-trusty-go_agent-raw' version '2978' not returned from Bosh")
 		t.FailNow()
 	}
 }
@@ -62,5 +66,11 @@ func TestDeleteStemcells(t *testing.T) {
 			log.Printf("[FAIL] Error deleting stemcell: %s", err.Error())
 			t.FailNow()
 		}
+	}
+
+	stemcells, err = d.ListStemcells()
+	if len(stemcells) != 0 {
+		log.Printf("[FAIL] Expected all stemcells to have been deleted but found %d stemcells remaining.", len(stemcells))
+		t.FailNow()		
 	}
 }
