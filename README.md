@@ -1,10 +1,10 @@
 # Bosh Provider for Terraform [![Build Status](https://travis-ci.org/mevansam/terraform-provider-bosh.svg?branch=master)](https://travis-ci.org/mevansam/terraform-provider-bosh)
 
-The [Bosh](http://bosh.io/) provider for [Terraform](https://terraform.io/) provides seamless integration of the Bosh deployment and operations toolset with a Terraform'ed cloud. All work for this provider is tracked using [PivotalTracker](https://www.pivotaltracker.com/projects/1359482). 
+The [Bosh](http://bosh.io/) provider for [Terraform](https://terraform.io/) integrates the Bosh deployment and operations toolset with a Terraform'ed cloud. All work for this provider is tracked using [PivotalTracker](https://www.pivotaltracker.com/projects/1359482). 
 
 To contribute:
 
-1. Fork the project and make your changes and submite a pull request.
+1. Fork the project and make your changes and submit a pull request.
 2. Request to be added to the list of contributors to this Github repository and the PivotalTracker project.
 
 ## Provider
@@ -23,20 +23,22 @@ provider "bosh" {
 
 ### "bosh_stemcell"
 
-Describes a stemcell that can be referenced by bosh deployments.
+Describes a stemcell that can be referenced by bosh deployments. 
 
 ```
 resource "bosh_stemcell" "ubuntu" {
 
-    stemcell_name = "bosh-stemcell-2978-openstack-kvm-ubuntu-trusty-go_agent.tgz"
-    
-    # Optional. If not specified then the name should reference a public stemcell.
     url = "https://bosh.io/d/stemcells/bosh-openstack-kvm-ubuntu-trusty-go_agent?v=2978"
     
-    # Optional. If not specified then this will be determined by downloading the binary
     sha1 = "42e08d492dafd46226676be59ee3e6e8a0da618b" 
 }
 ```
+
+The *sha1* digest is required for stemcells referred to by the *bosh_microbosh* resource. It is optional for all other resources that refer to a stemcell, but if provided it will be validated by downloading it to a temp folder.
+
+Computed attributes:
+
+* name
 
 ### "bosh_release"
 
@@ -45,13 +47,118 @@ Describes a bosh release that it can be referenced by bosh deployments.
 ```
 resource "bosh_release" "bosh" {
 
-    name = "bosh"
     url = "https://bosh.io/d/github.com/cloudfoundry/bosh?v=169"
     
-    # Optional. If not specified then this will be determined by downloading the binary
     sha1 = "ec361150584094951273f1088344e2d4b2ebeb9f"
 }
 ```
+
+The *sha1* digest is required for releases referred to by the *bosh_microbosh* resource. It is optional for all other resources that refer to a release, but if provided it will be validated by downloading it to a temp folder.
+
+Computed attributes:
+
+* name
+
+### "bosh_network"
+
+The *bosh_network* resource is used by bosh resource types to cross reference networks that they should be created in.
+
+```
+resource "bosh_network" "infra" {
+
+	name = "infrastructure"
+}
+resource "bosh_network" "apps" {
+
+	name = "infrastructure"
+}
+```
+
+### "bosh_resource"
+
+```
+resource "bosh_medium" "medium" {
+
+	name = "large-instance"
+}
+resource "bosh_resource" "large" {
+
+	name = "large-instance"
+}
+```
+
+### "bosh_disk"
+
+```
+resource "bosh_disk" "large" {
+
+	name = "fast-disk"
+}
+```
+
+### "bosh_cloud_config"
+
+```
+resource "bosh_cloud_config" "openstack_dev" {
+
+	network {
+    	
+	    type = "manual"
+
+		name = "${bosh_network.infra.name}
+	    cidr = "${openstack_networking_subnet_v2.bosh_infra_subnet.cidr}"
+    	gateway = "${openstack_networking_subnet_v2.bosh_infra_subnet.gateway_ip}"
+    	
+        cloud_property {
+        	name = "net_id"
+            value = "${openstack_networking_subnet_v2.bosh_infra_network.id}"
+        }
+    }
+    
+	network {
+    	
+	    type = "manual"
+
+		name = "${bosh_network.apps.name}
+	    cidr = "${openstack_networking_subnet_v2.bosh_apps_subnet.cidr}"
+    	gateway = "${openstack_networking_subnet_v2.bosh_apps_subnet.gateway_ip}"
+    	
+        cloud_property {
+        	name = "net_id"
+            value = "${openstack_networking_subnet_v2.bosh_apps_network.id}"
+        }
+    }
+    
+	resource_pools {
+    }
+    
+    disk_pools {
+    }
+    
+    compilation {
+    }
+    
+    # One of following bosh cpis - vsphere | aws | openstack | azure | google
+    # Externalize the provider API end-points and credentials shared with non
+    # bosh resources in terraform template via terriaform variables.
+    
+    vsphere {
+    }    
+    # OR
+    aws {
+    }
+    # OR
+    openstack {
+    }
+    # OR
+    azure {
+    }
+    # OR
+    google {
+    }
+}
+```
+
 
 ### "bosh_microbosh"
 
@@ -101,8 +208,6 @@ resource "bosh_microbosh" {
 ```
 
 ### "bosh_deployment"
-
-TODO
 
 ## Running Tests
 
