@@ -59,69 +59,52 @@ Computed attributes:
 
 * name
 
-### "bosh_network"
-
-The *bosh_network* resource is used by bosh resource types to cross reference networks that they should be created in.
-
-```
-resource "bosh_network" "infra" {
-
-	name = "infrastructure"
-}
-resource "bosh_network" "apps" {
-
-	name = "infrastructure"
-}
-```
-
-### "bosh_resource"
-
-```
-resource "bosh_medium" "medium" {
-
-	name = "large-instance"
-}
-resource "bosh_resource" "large" {
-
-	name = "large-instance"
-}
-```
-
-### "bosh_disk"
-
-```
-resource "bosh_disk" "large" {
-
-	name = "fast-disk"
-}
-```
-
 ### "bosh_cloud_config"
+
 
 ```
 resource "bosh_cloud_config" "openstack_dev" {
 
+	availability_zones = [ "AZ1", "AZ2" ]
+
+    network {
+        name = "public"
+        type = "vip"
+    }
 	network {
-    	
+		name = "infra-network"
 	    type = "manual"
 
-		name = "${bosh_network.infra.name}
 	    cidr = "${openstack_networking_subnet_v2.bosh_infra_subnet.cidr}"
     	gateway = "${openstack_networking_subnet_v2.bosh_infra_subnet.gateway_ip}"
+        num_reserved_ips = 100
+        
+        static_ip_block {
+        	name = "proxy"
+            num_ips = 2
+        }
     	
         cloud_property {
         	name = "net_id"
             value = "${openstack_networking_subnet_v2.bosh_infra_network.id}"
         }
     }
-    
 	network {
-    	
+		name = "application-network"
 	    type = "manual"
 
-		name = "${bosh_network.apps.name}
 	    cidr = "${openstack_networking_subnet_v2.bosh_apps_subnet.cidr}"
     	gateway = "${openstack_networking_subnet_v2.bosh_apps_subnet.gateway_ip}"
+        num_reserved_ips = 100
+        
+        static_ip_block {
+        	name = "proxy"
+            ips_per_az = 2
+        }
+        static_ip_block {
+        	name = "router"
+            ips_per_az = 2
+        }
     	
         cloud_property {
         	name = "net_id"
@@ -129,36 +112,96 @@ resource "bosh_cloud_config" "openstack_dev" {
         }
     }
     
-	resource_pools {
-    }
+	resource {    
+    	name = ${bosh_resource.infra_medium.name}
+        
+        stemcell {
+        	name = ${bosh_stemcell.ubuntu.name}"
+            varsion = ${bosh_stemcell.ubuntu.version}"
+        }
     
-    disk_pools {
+        cloud_property {
+        	name = "instance_type"
+            value = "m1.medium"
+        }
+	}
+	resource {    
+    	name = ${bosh_resource.infra_large.name}
+        network = ${bosh_resource.infra_large.network}
+        
+        stemcell {
+        	name = ${bosh_stemcell.ubuntu.name}"
+            varsion = ${bosh_stemcell.ubuntu.version}"
+        }
+    
+        cloud_property {
+        	name = "instance_type"
+            value = "m1.large"
+        }
+	}
+	resource {    
+    	name = ${bosh_resource.app_medium.name}
+        network = ${bosh_resource.app_medium.network}
+        
+        stemcell {
+        	name = ${bosh_stemcell.ubuntu.name}"
+            varsion = ${bosh_stemcell.ubuntu.version}"
+        }
+    
+        cloud_property {
+        	name = "instance_type"
+            value = "m1.medium"
+        }
+	}
+	resource {    
+    	name = ${bosh_resource.app_large.name}
+        network = ${bosh_resource.app_large.network}
+        
+        stemcell {
+        	name = ${bosh_stemcell.ubuntu.name}"
+            varsion = ${bosh_stemcell.ubuntu.version}"
+        }
+        
+        cloud_property {
+        	name = "instance_type"
+            value = "m1.large"
+        }
+	}
+    
+    disk {
+    }
+    disk {
     }
     
     compilation {
     }
-    
-    # One of following bosh cpis - vsphere | aws | openstack | azure | google
-    # Externalize the provider API end-points and credentials shared with non
-    # bosh resources in terraform template via terriaform variables.
-    
-    vsphere {
-    }    
-    # OR
-    aws {
-    }
-    # OR
-    openstack {
-    }
-    # OR
-    azure {
-    }
-    # OR
-    google {
-    }
 }
 ```
 
+Computed attributes:
+
+- networks.[*NETWORK_NAME*].vip.count - number of vips allocated to the network
+- networks.[*NETWORK_NAME*].vip.[*N*].ip - the Nth vip 
+- networks.[*NETWORK_NAME*].static.[*STATIC_IP_BLOCK_NAME*].count - number of allocated static ips
+- networks.[*NETWORK_NAME*].static.[*STATIC_IP_BLOCK_NAME*].[*N*].ip - the Nth static ip 
+
+
+### "bosh_deployment"
+
+```
+resource "bosh_deployment" "docker" {
+
+	job {
+    	name = "docker"
+        templates = [
+        	"docker",
+            "containers"
+        ]
+        resource_pool = "${bosh_resource.infra_medium.id}"
+        disk_pool = "${bosh_disk.fast_disk.id}"
+    }
+}
+```
 
 ### "bosh_microbosh"
 

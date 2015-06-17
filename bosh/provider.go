@@ -1,8 +1,6 @@
 package bosh
 
-import (
-	"regexp"
-	
+import (	
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/terraform"
 )
@@ -27,29 +25,21 @@ func Provider() terraform.ResourceProvider {
 				DefaultFunc: schema.EnvDefaultFunc("BOSH_PASSWORD", nil),
 			},
 		},
-
-		// TODO:
-
+		ResourcesMap: map[string]*schema.Resource{
+			"bosh_stemcell": resourceBoshStemcell(),
+			"bosh_release": resourceBoshRelease(),
+			"bosh_cloudconfig": resourceBoshCloudConfig(),
+			"bosh_deployment": resourceBoshDeployment(),
+			"bosh_microbosh": resourceBoshMicrobosh(),
+		},
 		ConfigureFunc: providerConfigure,
 	}
 }
 
 func providerConfigure(d *schema.ResourceData) (interface{}, error) {
 
-	var re *regexp.Regexp
-
-	target := d.Get("target").(string)		
-	re = regexp.MustCompile("^http(s)?://")
-	if re.FindString(target) == "" {
-		target = "https://" + target
-	}
-	re = regexp.MustCompile(":\\d+$")
-	if re.FindString(target) == "" {
-		target = target + ":25555"
-	}
-	
 	config := Config{
-		Target: target,
+		Target: d.Get("target").(string)	,
 		User: d.Get("user").(string),
 		Password: d.Get("password").(string),
 	}
