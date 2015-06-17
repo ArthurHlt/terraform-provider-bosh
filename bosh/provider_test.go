@@ -1,11 +1,16 @@
 package bosh
 
 import (
+	"fmt"
 	"os"
 	"testing"
 
+	"golang.org/x/net/context"
+
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/terraform"
+	
+	"github.com/mevansam/terraform-provider-bosh/bosh/bosh_client"
 )
 
 var testAccProviders map[string]terraform.ResourceProvider
@@ -35,4 +40,14 @@ func testAccPreCheck(t *testing.T) {
 	if target == "" || user == "" || password == "" {
 		t.Fatal("BOSH_TARGET, BOSH_USER and BOSH_PASSWORD must be set for acceptance tests to work.")
 	}
+}
+
+func GetDirector() (*bosh_client.Director, error) {
+	
+	d, err := bosh_client.NewDirector(context.Background(), os.Getenv("BOSH_TARGET"), os.Getenv("BOSH_USER"), os.Getenv("BOSH_PASSWORD"))
+	if err != nil {
+		return nil, fmt.Errorf("error connecting to the bosh director: %s", err.Error())
+	}
+	
+	return d, nil
 }

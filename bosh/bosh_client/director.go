@@ -1,7 +1,9 @@
 package bosh_client
 
 import (
+	"log"
 	"fmt"
+	"regexp"
 	"strings"
 	
 	"golang.org/x/net/context"
@@ -20,6 +22,17 @@ type Director struct {
 }
 
 func NewDirector(ctx context.Context, target string, user string, password string) (*Director, error) {
+
+	var re *regexp.Regexp
+
+	re = regexp.MustCompile("^http(s)?://")
+	if re.FindString(target) == "" {
+		target = "https://" + target
+	}
+	re = regexp.MustCompile(":\\d+$")
+	if re.FindString(target) == "" {
+		target = target + ":25555"
+	}
 	
 	d := gogobosh.NewDirector(target, user, password)	
 	c := &Director {
@@ -27,8 +40,14 @@ func NewDirector(ctx context.Context, target string, user string, password strin
 	}
 	
 	err := c.Connect()
-	if err != nil && !strings.Contains(err.Error(), "connection refused") {
-		return nil, err
+	if err != nil {
+		if !strings.Contains(err.Error(), "connection refused") {
+			return nil, err
+		}
+		log.Printf("[DEBUG] Connection to director not successful. Could be because " + 
+			"the Director does no exist yet. So connection has been deferred.")
+	} else {
+		log.Printf("[DEBUG] Connection to director successful.")
 	}
 	
 	return c, nil 
