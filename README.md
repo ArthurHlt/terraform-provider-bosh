@@ -28,7 +28,7 @@ The Bosh Terraform resources describe the elements of the manifest used by Bosh 
 
 ### Assets
 
-*bosh_stemcell* and *bosh_release* identify the software assets required build the environment. 
+*bosh_stemcell* and *bosh_release* identify the software assets required to build the environment. 
 
 #### "bosh_stemcell"
 
@@ -65,11 +65,24 @@ The *sha1* digest is required for releases referred to by the *bosh_microbosh* r
 
 ### Infrastructure
 
-*bosh_network*, *bosh_disk* and *bosh_resource* identify infrastructure used by bosh jobs to create IaaS resources during deployment. Its infrastructure specific attributes must have been updated by a referring *bosh_cloud_config* resource, in order to reference these resources from a *bosh_job* resource.
+*bosh_availability_zone*, *bosh_network*, *bosh_disk* and *bosh_resource* identify infrastructure used by bosh jobs to create IaaS resources during deployment. The phyiscal infrastructure specific attributes of these logical resources are specified in the *bosh_cloud_config* resource. A *bosh_job* resource should only reference the logical infrastructure resources thus maintaining cloud portability.
+
+#### "bosh_availability_zone"
+
+The *bosh_availability_zone* describes an availability zone or placement pool as defined (here)[https://github.com/cloudfoundry/bosh-notes/blob/master/availability-zones.md]. 
+
+```
+resource "bosh_availability_zone" "az1" {
+	name = "az1"
+}
+resource "bosh_availability_zone" "az2" {
+	name = "az2"
+}
+```
 
 #### "bosh_network"
 
-The *bosh_network* resource describes a network resource use by a bosh deployment. It is used to build the network section of the bosh cloud config manifest and the it's attributes closely map to the [documentation published at bosh.io](http://bosh.io/docs/networks.html). 
+The *bosh_network* resource describes a network resource use by a bosh deployment. It is used to build the network section of the bosh cloud config manifest and it's attributes closely map to the [documentation published at bosh.io](http://bosh.io/docs/networks.html). The network resource also acts as simple IPAM resource for Jobs requiring static IPs. The IP allocations are persisted in the Terraform state file.
 
 ```
 resource "bosh_network" "public-network" {
@@ -79,6 +92,7 @@ resource "bosh_network" "public-network" {
 }
 resource "bosh_network" "infra-network" {
 
+    name = "infra"
     type = "manual"
         
     static_ip_block {
@@ -88,6 +102,7 @@ resource "bosh_network" "infra-network" {
 }
 resource "bosh_network" "application-network" {
 
+    name = "application"
     type = "manual"
 
     num_reserved_ips = 100
@@ -119,14 +134,33 @@ If more than one placement pool (or availability zones) is available in the clou
 The *bosh_persistent_disk* resource describes a named disk type for a bosh deployment. It is used to build the disk pool section of a bosh cloud config manifest and the resource attributes closely map to the [documentation published at bosh.io](http://bosh.io/docs/persistent-disks.html).
 
 ```
-resource "bosh_disk" "fast-disk" {
+resource "bosh_disk" "fast" {
+    name = "fast-disk"
     disk_size = 512
 }
-resource "bosh_disk" "standard-disk-medium" {
+resource "bosh_disk" "standard-medium" {
+    name = "standard-medium-disk"
     disk_size = 512
 }
-resource "bosh_disk" "standard-disk-large" {
+resource "bosh_disk" "standard-large" {
+    name = "standard-large-disk"
     disk_size = 1024
+}
+```
+
+Computed attributes:
+
+* id - ID used to reference a bosh resource instance.
+
+#### "bosh_compilation"
+
+The *bosh_compilation* resource describes the attributes of compilation jobs.
+
+```
+resource "bosh_compilation" "compilation" {
+    workers = 8
+    reuse_compilation_vms = true
+    network = "${bosh_network.infra-network.name}"
 }
 ```
 
@@ -140,10 +174,13 @@ The *bosh_resource* resource describes the IaaS resource for a bosh deployment j
 
 ```
 resource "bosh_resource" "small" {
+    name = "cf_small"
 }
 resource "bosh_resource" "medium" {
+    name = "cf_medium"
 }
 resource "bosh_resource" "large" {
+    name = "cf_large"
 }
 ```
 
@@ -159,8 +196,9 @@ The *bosh_job* resource describes a job or instance of a runable process.
 resource "bosh_job" "postgres" {
 	
 	instances = 1
-	resource_pool = "${bosh_resource.large.id}"
-	
+	resource_pool {
+		ref = "${bosh_resource.large.id}"
+	}
 	network {
 		ref = "${bosh_network.application-network.id}"
 	}
@@ -168,8 +206,9 @@ resource "bosh_job" "postgres" {
 resource "bosh_job" "uaa" {
 
 	instances = 2
-	resource_pool = "${bosh_resource.medium.id}"
-	
+	resource_pool {
+		ref = "${bosh_resource.medium.id}"
+	}
 	network {
 		ref = "${bosh_network.application-network.id}"
 	}
@@ -185,51 +224,59 @@ The *bosh_cloud_config* composes the *bosh_network*, *bosh_disk* and *bosh_resou
 ```
 resource "bosh_cloud_config" "openstack_dev" {
 
-    network {
-        ref = "${bosh_network.public-network.id}"
+    availability_zone {
+        ref = "${bosh_availability_zone.az1.id}"
         
-        vip = [
-            "openstack_compute_floatingip_v2.vip1.address",
-            "openstack_compute_floatingip_v2.vip2.address",
-            "openstack_compute_floatingip_v2.vip3.address",
-            "openstack_compute_floatingip_v2.vip4.address"
-        ]
-    }
-    network {
-        ref = "${bosh_network.infra-network.id}"
-        
-        cidr = "${openstack_networking_subnet_v2.bosh_apps_subnet.cidr}"
-        gateway = "${openstack_networking_subnet_v2.bosh_apps_subnet.gateway_ip}"
-        
-        cloud_property {
-            name = "net_id"
-            value = "${openstack_networking_subnet_v2.bosh_infra_network.id}"
-        }
-    }
-    network {
-        ref = "${bosh_network.application-network.id}"
-        
-        cidr = "${openstack_networking_subnet_v2.bosh_infra_subnet.cidr}"
-        gateway = "${openstack_networking_subnet_v2.bosh_infra_subnet.gateway_ip}"
-        
-        cloud_property {
-            name = "net_id"
-            value = "${openstack_networking_subnet_v2.bosh_apps_network.id}"
-        }
-    }
-    
-    placement_pool {
-        name = "az1"
         cloud_property {
             name = "availability_zone"
             value = "USEAST_AZ1"
         }
     }
-    placement_pool {
-        name = "az2"
+    availability_zone {
+        ref = "${bosh_availability_zone.az2.id}"
+
         cloud_property {
             name = "availability_zone"
             value = "USEAST_AZ2"
+        }
+    }
+
+    network {
+        ref = "${bosh_network.public-network.id}"
+        
+        vip = [
+            "${openstack_compute_floatingip_v2.vip1.address}",
+            "${openstack_compute_floatingip_v2.vip2.address}",
+            "${openstack_compute_floatingip_v2.vip3.address}",
+            "${openstack_compute_floatingip_v2.vip4.address}"
+        ]
+    }
+    network {
+        ref = "${bosh_network.infra-network.id}"
+        
+        subnet {
+            cidr = "${openstack_networking_subnet_v2.bosh_apps_subnet.cidr}"
+            gateway = "${openstack_networking_subnet_v2.bosh_apps_subnet.gateway_ip}"
+            
+            availability_zone = "self.availability_zone.0.name"
+            
+            cloud_property {
+                name = "net_id"
+                value = "${openstack_networking_subnet_v2.bosh_infra_network.id}"
+            }
+        }
+    }
+    network {
+        ref = "${bosh_network.application-network.id}"
+        
+        subnet {
+            cidr = "${openstack_networking_subnet_v2.bosh_infra_subnet.cidr}"
+            gateway = "${openstack_networking_subnet_v2.bosh_infra_subnet.gateway_ip}"
+            
+            cloud_property {
+                name = "net_id"
+                value = "${openstack_networking_subnet_v2.bosh_apps_network.id}"
+            }
         }
     }
     
@@ -245,8 +292,6 @@ resource "bosh_cloud_config" "openstack_dev" {
         	name = "instance_type"
             value = "m1.small"
         }
-
-        placement_pools = [ "${self.placement_pool.0.name}", "${self.placement_pool.1.name}" ]
 	}
 	resource {
     	ref = "${bosh_resource.medium.id}"
@@ -260,8 +305,6 @@ resource "bosh_cloud_config" "openstack_dev" {
         	name = "instance_type"
             value = "m1.medium"
         }
-
-        placement_pools = [ "${self.placement_pool.0.name}", "${self.placement_pool.1.name}" ]
 	}
 	resource {
     	ref = "${bosh_resource.large.id}"
@@ -275,8 +318,6 @@ resource "bosh_cloud_config" "openstack_dev" {
         	name = "instance_type"
             value = "m1.large"
         }
-
-        placement_pools = [ "${self.placement_pool.0.name}", "${self.placement_pool.1.name}" ]
 	}
     
     disk {
@@ -305,8 +346,16 @@ resource "bosh_cloud_config" "openstack_dev" {
     }
     
     compilation {
-        network = "${bosh_network.application-network.name}"
-        pool = "${self.placement_pool.0.name}"
+        ref = "${bosh_compilation.compilation.id}"
+        
+        cloud_property {
+        	name = ""instance_type"
+            value = "m1.medium"
+        }
+        cloud_property {
+        	name = ""availability_zone"
+            value = "USEAST_AZ1"
+        }
     }
 }
 ```
