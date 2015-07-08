@@ -21,6 +21,11 @@ provider "bosh" {
 
 ## Terraform Resources
 
+The Bosh Terraform resources describe the elements of the manifest used by Bosh to build the infrastructure. These resources can be considered to be logical representations of physical resources managed by Bosh. The following diagram outlines the relationships between the various elements of a manifest. The decomposition of the manifest elements into Terraform resources will also make it easier to adapt to the evolving structure of the Bosh manifest, as outlined in the [bosh notes](https://github.com/cloudfoundry/bosh-notes).
+
+![Image of Bosh Manifest Elements]
+(docs/images/Bosh-Manifest-Elements.png)
+
 ### Assets
 
 *bosh_stemcell* and *bosh_release* identify the software assets required build the environment. 
@@ -145,6 +150,31 @@ resource "bosh_resource" "large" {
 Computed attributes:
 
 * id - id used to reference a bosh resource instance
+
+#### "bosh_job"
+
+The *bosh_job* resource describes a job or instance of a runable process.
+
+```
+resource "bosh_job" "postgres" {
+	
+	instances = 1
+	resource_pool = "${bosh_resource.large.id}"
+	
+	network {
+		ref = "${bosh_network.application-network.id}"
+	}
+}
+resource "bosh_job" "uaa" {
+
+	instances = 2
+	resource_pool = "${bosh_resource.medium.id}"
+	
+	network {
+		ref = "${bosh_network.application-network.id}"
+	}
+}
+```
 
 ### Cloud
 
