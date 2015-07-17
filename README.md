@@ -65,24 +65,11 @@ The *sha1* digest is required for releases referred to by the *bosh_microbosh* r
 
 ### Infrastructure
 
-*bosh_availability_zone*, *bosh_network*, *bosh_disk* and *bosh_resource* identify infrastructure used by bosh jobs to create IaaS resources during deployment. The phyiscal infrastructure specific attributes of these logical resources are specified in the *bosh_cloud_config* resource. A *bosh_job* resource should only reference the logical infrastructure resources thus maintaining cloud portability.
-
-#### "bosh_availability_zone"
-
-The *bosh_availability_zone* describes an availability zone or placement pool as defined (here)[https://github.com/cloudfoundry/bosh-notes/blob/master/availability-zones.md]. 
-
-```
-resource "bosh_availability_zone" "az1" {
-	name = "az1"
-}
-resource "bosh_availability_zone" "az2" {
-	name = "az2"
-}
-```
+*bosh_network*, *bosh_disk* and *bosh_resource* identify infrastructure used by bosh jobs to create IaaS resources during deployment. The phyiscal infrastructure specific attributes of these logical resources are specified in the *bosh_cloud_config* resource. A *bosh_job* resource should only reference the logical infrastructure resources thus maintaining cloud portability.
 
 #### "bosh_network"
 
-The *bosh_network* resource describes a network resource use by a bosh deployment. It is used to build the network section of the bosh cloud config manifest and it's attributes closely map to the [documentation published at bosh.io](http://bosh.io/docs/networks.html). The network resource also acts as simple IPAM resource for Jobs requiring static IPs. The IP allocations are persisted in the Terraform state file.
+The *bosh_network* resource describes a network resource used by a bosh deployment. It is used to build the network section of the bosh cloud config manifest and it's attributes closely map to the [documentation published at bosh.io](http://bosh.io/docs/networks.html). The network resource also acts as simple IPAM resource for Jobs requiring static IPs. The IP allocations are persisted in the Terraform state file.
 
 ```
 resource "bosh_network" "public-network" {
@@ -219,13 +206,13 @@ resource "bosh_job" "uaa" {
 
 #### "bosh_cloud_config"
 
-The *bosh_cloud_config* composes the *bosh_network*, *bosh_disk* and *bosh_resource* resources to build cloud config manifest that can by pushed to the bosh director before executing a deployment.
+The *bosh_cloud_config* composes the *bosh_network*, *bosh_disk* and *bosh_resource* resources to build cloud config manifest that can by pushed to the bosh director before executing a deployment. This resource configures the IaaS parameters for the cloud by referencing IaaS specific resources in other terraform templates.
 
 ```
 resource "bosh_cloud_config" "openstack_dev" {
 
     availability_zone {
-        ref = "${bosh_availability_zone.az1.id}"
+        name = "az1"
         
         cloud_property {
             name = "availability_zone"
@@ -233,7 +220,7 @@ resource "bosh_cloud_config" "openstack_dev" {
         }
     }
     availability_zone {
-        ref = "${bosh_availability_zone.az2.id}"
+        name = "az2"
 
         cloud_property {
             name = "availability_zone"
@@ -258,8 +245,13 @@ resource "bosh_cloud_config" "openstack_dev" {
             cidr = "${openstack_networking_subnet_v2.bosh_apps_subnet.cidr}"
             gateway = "${openstack_networking_subnet_v2.bosh_apps_subnet.gateway_ip}"
             
-            availability_zone = "self.availability_zone.0.name"
-            
+            # Optional list of availability zones this subnet is available
+            # across. If not provided then it defaults to all zones.
+            availability_zones = [
+                "${self.availability_zone.0.name}",
+                "${self.availability_zone.1.name}"
+            ]
+                        
             cloud_property {
                 name = "net_id"
                 value = "${openstack_networking_subnet_v2.bosh_infra_network.id}"
@@ -273,6 +265,13 @@ resource "bosh_cloud_config" "openstack_dev" {
             cidr = "${openstack_networking_subnet_v2.bosh_infra_subnet.cidr}"
             gateway = "${openstack_networking_subnet_v2.bosh_infra_subnet.gateway_ip}"
             
+            # Optional list of availability zones this subnet is available
+            # across. If not provided then it defaults to all zones.
+            availability_zones = [
+                "${self.availability_zone.0.name}",
+                "${self.availability_zone.1.name}"
+            ]
+
             cloud_property {
                 name = "net_id"
                 value = "${openstack_networking_subnet_v2.bosh_apps_network.id}"
@@ -288,6 +287,13 @@ resource "bosh_cloud_config" "openstack_dev" {
             varsion = ${bosh_stemcell.ubuntu.version}"
         }
         
+        # Optional list of availability zones this resource is available
+        # across. If not provided then it defaults to all zones.
+        availability_zones = [
+            "${self.availability_zone.0.name}",
+            "${self.availability_zone.1.name}"
+        ]
+
         cloud_property {
         	name = "instance_type"
             value = "m1.small"
@@ -300,7 +306,14 @@ resource "bosh_cloud_config" "openstack_dev" {
         	name = ${bosh_stemcell.ubuntu.name}"
             varsion = ${bosh_stemcell.ubuntu.version}"
         }
-    
+        
+        # Optional list of availability zones this resource is available
+        # across. If not provided then it defaults to all zones.
+        availability_zones = [
+            "${self.availability_zone.0.name}",
+            "${self.availability_zone.1.name}"
+        ]
+
         cloud_property {
         	name = "instance_type"
             value = "m1.medium"
@@ -313,7 +326,14 @@ resource "bosh_cloud_config" "openstack_dev" {
         	name = ${bosh_stemcell.ubuntu.name}"
             varsion = ${bosh_stemcell.ubuntu.version}"
         }
-    
+        
+        # Optional list of availability zones this resource is available
+        # across. If not provided then it defaults to all zones.
+        availability_zones = [
+            "${self.availability_zone.0.name}",
+            "${self.availability_zone.1.name}"
+        ]
+
         cloud_property {
         	name = "instance_type"
             value = "m1.large"
@@ -323,6 +343,13 @@ resource "bosh_cloud_config" "openstack_dev" {
     disk {
     	ref = "${bosh_disk.fast-disk.id}"
 
+        # Optional list of availability zones this resource is available
+        # across. If not provided then it defaults to all zones.
+        availability_zones = [
+            "${self.availability_zone.0.name}",
+            "${self.availability_zone.1.name}"
+        ]
+
         cloud_property {
         	name = "type"
             value = "gp2"
@@ -331,6 +358,13 @@ resource "bosh_cloud_config" "openstack_dev" {
     disk {
     	ref = "${bosh_disk.standard-disk-medium.id}"
 
+        # Optional list of availability zones this resource is available
+        # across. If not provided then it defaults to all zones.
+        availability_zones = [
+            "${self.availability_zone.0.name}",
+            "${self.availability_zone.1.name}"
+        ]
+
         cloud_property {
         	name = "type"
             value = "standard"
@@ -338,6 +372,13 @@ resource "bosh_cloud_config" "openstack_dev" {
     }
     disk {
     	ref = "${bosh_disk.standard-disk-large.id}"
+
+        # Optional list of availability zones this resource is available
+        # across. If not provided then it defaults to all zones.
+        availability_zones = [
+            "${self.availability_zone.0.name}",
+            "${self.availability_zone.1.name}"
+        ]
 
         cloud_property {
         	name = "type"
@@ -474,7 +515,7 @@ $ bosh --target 127.0.0.1 --user admin --password admin status
 Which should output:
 ```
 Config
-             /Users/msamaratunga/.bosh_config
+             /Users/<user>/.bosh_config
 
 Director
   Name       Bosh Lite Director
