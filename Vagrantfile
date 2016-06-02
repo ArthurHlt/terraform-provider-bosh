@@ -16,8 +16,8 @@ Vagrant.configure("2") do |config|
     config.vm.synced_folder ".", "/vagrant", mount_options: ["dmode=777"]
 
     config.vm.provision "bosh" do |c|
-        bosh_version = 170
-        warden_cpi_version = 21
+        bosh_version = 256.2
+        warden_cpi_version = 29
 
         c.manifest = <<-EOS
 ---
