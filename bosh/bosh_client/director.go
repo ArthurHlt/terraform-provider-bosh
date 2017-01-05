@@ -8,8 +8,6 @@ import (
 	
 	"golang.org/x/net/context"
 	"github.com/cloudfoundry-community/gogobosh"
-	"github.com/cloudfoundry-community/gogobosh/api"
-	"github.com/cloudfoundry-community/gogobosh/net"
 )
 
 type Director struct {
@@ -18,7 +16,7 @@ type Director struct {
 	Version string
 	CPI string
 	
-	director api.DirectorRepository
+	director gogobosh.DirectorRepository
 }
 
 func NewDirector(ctx context.Context, target string, user string, password string) (*Director, error) {
